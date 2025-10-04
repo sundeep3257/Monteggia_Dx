@@ -1,0 +1,13 @@
+flask
+torch
+torchvision
+nibabel
+numpy
+pandas
+opencv-python-headless
+segmentation-models-pytorch
+scipy
+werkzeug
+pillow
+matplotlib
+timm

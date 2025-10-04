@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Ulnar Fracture Analysis Results</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            line-height: 1.6; 
+            background: linear-gradient(135deg, #25524aff 0%, #2d5a4a 100%);
+            color: white; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { 
+            background-color: rgba(255, 255, 255, 0.95); 
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            max-width: 90%; 
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(193, 237, 204, 0.3);
+        }
+        h1 { 
+            color: #25524aff; 
+            margin-bottom: 30px; 
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .branch-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .branch-btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #c1edccff;
+            background: rgba(193, 237, 204, 0.1);
+            color: #25524aff;
+        }
+        .branch-btn:hover {
+            background: linear-gradient(135deg, #c1edccff 0%, #a8e6b8 100%);
+            color: #25524aff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(193, 237, 204, 0.3);
+        }
+        .branch-btn.active {
+            background: linear-gradient(135deg, #c1edccff 0%, #a8e6b8 100%);
+            color: #25524aff;
+            box-shadow: 0 4px 15px rgba(193, 237, 204, 0.4);
+        }
+        .result-image { 
+            width: 100%; 
+            max-width: 100%;
+            height: auto; 
+            border: 3px solid #c1edccff; 
+            border-radius: 15px; 
+            margin-top: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .result-image:hover {
+            transform: scale(1.02);
+        }
+        .btn { 
+            display: inline-block; 
+            text-decoration: none; 
+            background: linear-gradient(135deg, #c1edccff 0%, #a8e6b8 100%);
+            color: #25524aff; 
+            padding: 15px 35px; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: 600;
+            transition: all 0.3s ease; 
+            margin-top: 30px;
+            box-shadow: 0 8px 20px rgba(193, 237, 204, 0.3);
+        }
+        .btn:hover { 
+            background: linear-gradient(135deg, #a8e6b8 0%, #8fdd9f 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(193, 237, 204, 0.4);
+            text-decoration: none;
+        }
+        .classification-results {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #c1edccff;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        .classification-results h3 {
+            color: #25524aff;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.4rem;
+        }
+        .prediction {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .healthy-prediction {
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #c3e6cb;
+        }
+        .fracture-prediction {
+            color: #721c24;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #f5c6cb;
+        }
+        .probabilities {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .probability-item {
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+        .probability-label {
+            font-weight: 600;
+            color: #25524aff;
+            margin-bottom: 5px;
+        }
+        .probability-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #25524aff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ulnar Fracture Analysis Complete</h1>
+        <p class="subtitle">AI-powered analysis of your forearm X-ray images</p>
+        
+        <div class="branch-selector">
+            <a href="/" class="branch-btn">Radial Head Dislocation Detection</a>
+            <a href="/ulnar" class="branch-btn active">Ulnar Fracture Detection</a>
+        </div>
+        
+        {% if results %}
+            <div class="classification-results">
+                <h3>Fracture Classification Results</h3>
+                <div class="prediction {% if results.prediction == 'Fracture' %}fracture-prediction{% else %}healthy-prediction{% endif %}">
+                    {% if results.prediction == 'Fracture' %}
+                        🚨 Fracture Detected
+                    {% else %}
+                        ✅ No Fracture Detected
+                    {% endif %}
+                </div>
+                <div class="probabilities">
+                    <div class="probability-item">
+                        <div class="probability-label">Healthy Probability</div>
+                        <div class="probability-value">{{ "%.1f"|format(results.healthy_prob * 100) }}%</div>
+                    </div>
+                    <div class="probability-item">
+                        <div class="probability-label">Fracture Probability</div>
+                        <div class="probability-value">{{ "%.1f"|format(results.fracture_prob * 100) }}%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="color: #25524aff; margin-bottom: 15px; font-size: 1.3rem; text-align: center;">Segmentation Heatmap</h3>
+            <img src="{{ url_for('send_result_file', filename=results.filename) }}" alt="Ulnar Fracture Segmentation" class="result-image">
+        {% else %}
+            <div style="color: #666; margin-top: 30px;">
+                <p>No results available. Please try uploading images again.</p>
+            </div>
+        {% endif %}
+        
+        <br>
+        <a href="/ulnar" class="btn">Analyze More Images</a>
+    </div>
+</body>
+</html>

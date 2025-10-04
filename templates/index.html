@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Monteggia Fracture Identifier</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            line-height: 1.6; 
+            background: linear-gradient(135deg, #25524aff 0%, #2d5a4a 100%);
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px;
+        }
+        .container { 
+            background-color: rgba(255, 255, 255, 0.95); 
+            padding: 50px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+            text-align: center; 
+            max-width: 700px; 
+            width: 100%; 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(193, 237, 204, 0.3);
+        }
+        h1 { 
+            color: #25524aff; 
+            margin-bottom: 30px; 
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        .upload-form { margin-top: 30px; }
+        .file-input { 
+            border: 3px dashed #c1edccff; 
+            border-radius: 15px; 
+            padding: 40px; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, rgba(193, 237, 204, 0.1), rgba(193, 237, 204, 0.05));
+        }
+        .file-input:hover { 
+            background: linear-gradient(45deg, rgba(193, 237, 204, 0.2), rgba(193, 237, 204, 0.1));
+            border-color: #25524aff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 82, 74, 0.2);
+        }
+        input[type="file"] { display: none; }
+        .upload-label { 
+            font-weight: 600; 
+            color: #25524aff; 
+            font-size: 1.2rem;
+        }
+        .btn { 
+            background: linear-gradient(135deg, #c1edccff 0%, #a8e6b8 100%);
+            color: #25524aff; 
+            padding: 15px 35px; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: 600;
+            transition: all 0.3s ease; 
+            margin-top: 30px;
+            box-shadow: 0 8px 20px rgba(193, 237, 204, 0.3);
+        }
+        .btn:hover { 
+            background: linear-gradient(135deg, #a8e6b8 0%, #8fdd9f 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(193, 237, 204, 0.4);
+        }
+        .flash-message { 
+            padding: 20px; 
+            margin-bottom: 25px; 
+            border-radius: 12px; 
+            color: #721c24; 
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #f5c6cb;
+            font-weight: 500;
+        }
+        .filename-display {
+            color: #25524aff;
+            font-weight: 600;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(193, 237, 204, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(193, 237, 204, 0.5);
+        }
+        .image-type-section {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .image-type-label {
+            display: block;
+            color: #25524aff;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        .upload-sections-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .file-upload-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+        }
+        .file-upload-section h3 {
+            color: #25524aff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        .upload-area {
+            border: 3px dashed #c1edccff;
+            border-radius: 15px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, rgba(193, 237, 204, 0.1), rgba(193, 237, 204, 0.05));
+            margin-bottom: 15px;
+            text-align: center;
+            display: block;
+        }
+        .upload-area:hover {
+            background: linear-gradient(45deg, rgba(193, 237, 204, 0.2), rgba(193, 237, 204, 0.1));
+            border-color: #25524aff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 82, 74, 0.2);
+        }
+        .upload-area.file-selected {
+            background: linear-gradient(45deg, rgba(193, 237, 204, 0.3), rgba(193, 237, 204, 0.2));
+            border-color: #25524aff;
+            border-style: solid;
+        }
+        .upload-label {
+            font-weight: 600;
+            color: #25524aff;
+            font-size: 1.1rem;
+            display: block;
+            margin: 0;
+        }
+        .file-input.file-selected {
+            background: linear-gradient(45deg, rgba(193, 237, 204, 0.3), rgba(193, 237, 204, 0.2));
+            border-color: #25524aff;
+            border-style: solid;
+        }
+        .branch-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .branch-btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #c1edccff;
+            background: rgba(193, 237, 204, 0.1);
+            color: #25524aff;
+        }
+        .branch-btn:hover {
+            background: linear-gradient(135deg, #c1edccff 0%, #a8e6b8 100%);
+            color: #25524aff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(193, 237, 204, 0.3);
+        }
+        .branch-btn.active {
+            background: linear-gradient(135deg, #c1edccff 0%, #a8e6b8 100%);
+            color: #25524aff;
+            box-shadow: 0 4px 15px rgba(193, 237, 204, 0.4);
+        }
+        .disclaimer {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .disclaimer h4 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        .disclaimer p {
+            color: #856404;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .test-images-section {
+            margin-bottom: 20px;
+        }
+        .test-images-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #56b4e9ff 0%, #4a9fd1 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #56b4e9ff;
+            box-shadow: 0 4px 15px rgba(86, 180, 233, 0.3);
+        }
+        .test-images-btn:hover {
+            background: linear-gradient(135deg, #4a9fd1 0%, #3d8bc4 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(86, 180, 233, 0.4);
+            text-decoration: none;
+            color: white;
+        }
+        .file-input.file-selected .upload-label {
+            color: #25524aff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Automated Monteggia Fracture Analyzer</h1>
+        <div class="test-images-section">
+            <a href="/download_test_images" class="test-images-btn">Download Test Images</a>
+        </div>
+        <p class="subtitle">Upload your x-rays (.nii or .png) below for AI-powered fracture analysis.<br><br>
+        The Radial Head Dislocation Detection pipeline takes lateral and AP elbow x-rays as inputs. You can upload either view, or both views for concurrent analysis. The pipeline will identify the presence or absence of dislocation, while also providing a visual representation of its reasoning.<br><br>
+        The Ulnar Fracture Detection pipeline requires both an AP and lateral elbow x-rays as input. It will similarly identify the presence or absence of a fracture, while also localizing the fracture if present.</p>
+        
+        <div class="branch-selector">
+            <a href="/" class="branch-btn active">Radial Head Dislocation Detection</a>
+            <a href="/ulnar" class="branch-btn">Ulnar Fracture Detection</a>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            <div class="upload-sections-container">
+                <div class="file-upload-section">
+                    <h3>Lateral X-ray</h3>
+                    <label for="lateral-upload" class="upload-area" id="lateral-upload-area">
+                        <span class="upload-label">Click here to choose lateral X-ray (.nii or .png)</span>
+                    </label>
+                    <input id="lateral-upload" name="lateral_file" type="file" accept=".nii,.png" onchange="handleFileSelect(this, 'lateral')" style="display: none;">
+                    <p id="lateral-filename" class="filename-display" style="display: none;"></p>
+                </div>
+
+                <div class="file-upload-section">
+                    <h3>Anteroposterior (AP) X-ray</h3>
+                    <label for="ap-upload" class="upload-area" id="ap-upload-area">
+                        <span class="upload-label">Click here to choose AP X-ray (.nii or .png)</span>
+                    </label>
+                    <input id="ap-upload" name="ap_file" type="file" accept=".nii,.png" onchange="handleFileSelect(this, 'ap')" style="display: none;">
+                    <p id="ap-filename" class="filename-display" style="display: none;"></p>
+                </div>
+            </div>
+
+            <button type="submit" class="btn">Analyze Images</button>
+        </form>
+        
+        <div class="disclaimer">
+            <h4>DISCLAIMERS:</h4>
+            <p>This tool is merely a proof of concept for how AI can aid in the assessment of orthopedic diagnosis. Rigorous validation is required prior to clinical use. <strong>THIS TOOL IS NOT MEANT FOR USE IN CLINICAL SETTINGS</strong><br><br>
+            This website is <strong>NOT HIPPA COMPLIANT</strong>. Although <strong>WE DO NOT SAVE OR DOWNLOAD ANY FILES</strong> uploaded by users, protected health information should not be submitted for analysis as this website is not a secure environment.<br><br>
+            All test images available for download were sourced from radiopaedia.org.</p>
+        </div>
+    </div>
+    
+    <script>
+        function handleFileSelect(input, imageType) {
+            const filename = input.files[0] ? input.files[0].name : '';
+            const filenameDisplay = document.getElementById(imageType + '-filename');
+            const uploadArea = document.getElementById(imageType + '-upload-area');
+            
+            if (filename) {
+                filenameDisplay.textContent = 'Selected: ' + filename;
+                filenameDisplay.style.display = 'block';
+                uploadArea.classList.add('file-selected');
+            } else {
+                filenameDisplay.style.display = 'none';
+                uploadArea.classList.remove('file-selected');
+            }
+        }
+    </script>
+</body>
+</html>
