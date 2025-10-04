@@ -11,3 +11,4 @@ werkzeug
 pillow
 matplotlib
 timm
+gunicorn
