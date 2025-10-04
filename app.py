@@ -336,7 +336,7 @@ def process_image(input_image_path, annotated_output_path, image_type="lateral")
         for name in model_keys:
             if name in MODEL_WEIGHTS:
                 model = smp.UnetPlusPlus("efficientnet-b1", encoder_weights=None, in_channels=1, classes=1).to(device)
-                model.load_state_dict(torch.load(MODEL_WEIGHTS[name], map_location=device))
+                model.load_state_dict(torch.load(MODEL_WEIGHTS[name], map_location=device, weights_only=False))
                 model.eval()
                 models[name] = model
         app.logger.info(f"All {image_type} models loaded successfully.")
@@ -554,11 +554,11 @@ def run_ulnar_fracture_analysis(image_path, output_path, device):
     try:
         # Load models
         cls_model = EfficientNetB1_2Channel().to(device)
-        cls_model.load_state_dict(torch.load(MODEL_WEIGHTS["ulnar_classification"], map_location=device))
+        cls_model.load_state_dict(torch.load(MODEL_WEIGHTS["ulnar_classification"], map_location=device, weights_only=False))
         cls_model.eval()
         
         seg_model = EffUNet().to(device)
-        seg_model.load_state_dict(torch.load(MODEL_WEIGHTS["ulnar_segmentation"], map_location=device))
+        seg_model.load_state_dict(torch.load(MODEL_WEIGHTS["ulnar_segmentation"], map_location=device, weights_only=False))
         seg_model.eval()
         
         app.logger.info("Ulnar fracture models loaded successfully.")
@@ -942,4 +942,5 @@ def send_result_file(filename):
 
 
 if __name__ == '__main__':
+
     app.run(debug=True)
