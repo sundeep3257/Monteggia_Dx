@@ -26,18 +26,18 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 RESULTS_FOLDER = os.path.join('static', 'results')
 ALLOWED_EXTENSIONS = {'nii', 'png'}
 
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['RESULTS_FOLDER'] = RESULTS_FOLDER
-app.config['SECRET_KEY'] = 'supersecretkey' # Needed for flashing messages
-app.logger.setLevel(logging.INFO)
+application = Flask(__name__)
+application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+application.config['RESULTS_FOLDER'] = RESULTS_FOLDER
+application.config['SECRET_KEY'] = 'supersecretkey' # Needed for flashing messages
+application.logger.setLevel(logging.INFO)
 
 # --- 2. MODEL AND CROP PARAMETERS ---
 MODEL_INPUT_SIZE = (224, 224)
 CROP_SIZE = 244
 
 # --- 3. VERIFY MODEL WEIGHTS PATHS ---
-# Assumes a 'models' folder is in the same directory as app.py
+# Assumes a 'models' folder is in the same directory as application.py
 MODELS_DIR = 'models'
 MODEL_WEIGHTS = {
     "lat_small_cap": os.path.join(MODELS_DIR, "Lat_Small_Cap_Model_EFB1.pth"),
@@ -79,7 +79,7 @@ def detect_line_circle_intersection(radial_quants_csv_path, cap_quants_csv_path)
         # Get the radiocapitellar line (from midpoints)
         midpoints_df = df_rad[df_rad['Point_Type'].str.contains('Midpoint')]
         if len(midpoints_df) < 2:
-            app.logger.warning("Not enough midpoints found for line detection")
+            application.logger.warning("Not enough midpoints found for line detection")
             return False
         
         # Line points
@@ -92,7 +92,7 @@ def detect_line_circle_intersection(radial_quants_csv_path, cap_quants_csv_path)
         diameter = df_cap['Diameter_Length'].iloc[0]
         
         if np.isnan(diameter) or diameter <= 0:
-            app.logger.warning("Invalid capitellum diameter")
+            application.logger.warning("Invalid capitellum diameter")
             return False
         
         radius = diameter / 2
@@ -108,11 +108,11 @@ def detect_line_circle_intersection(radial_quants_csv_path, cap_quants_csv_path)
         # Check if line intersects circle
         intersects = distance_to_center <= radius
         
-        app.logger.info(f"Line-circle intersection detection: distance={distance_to_center:.2f}, radius={radius:.2f}, intersects={intersects}")
+        application.logger.info(f"Line-circle intersection detection: distance={distance_to_center:.2f}, radius={radius:.2f}, intersects={intersects}")
         return intersects
         
     except Exception as e:
-        app.logger.error(f"Error in line-circle intersection detection: {e}")
+        application.logger.error(f"Error in line-circle intersection detection: {e}")
         return False
 
 def create_annotated_image(original_image_path, radial_quants_csv_path, cap_quants_csv_path, output_annotated_path):
@@ -153,7 +153,7 @@ def create_annotated_image(original_image_path, radial_quants_csv_path, cap_quan
         cv2.circle(annotated_image, centroid_point, radius=circle_radius, color=COLOR_RAD_MIDPOINT_AND_LINE, thickness=2)
 
     cv2.imwrite(output_annotated_path, annotated_image)
-    app.logger.info(f"Successfully created annotated image: {output_annotated_path}")
+    application.logger.info(f"Successfully created annotated image: {output_annotated_path}")
 
 
 def predict_mask(model, mri_path, device, original_shape_hw):
@@ -320,12 +320,12 @@ def process_image(input_image_path, annotated_output_path, image_type="lateral")
     image_type: "lateral" or "ap" to determine which models to use
     """
     temp_dir = tempfile.mkdtemp()
-    app.logger.info(f"Created temporary directory: {temp_dir}")
+    application.logger.info(f"Created temporary directory: {temp_dir}")
     try:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        app.logger.info(f"Using device: {device}")
+        application.logger.info(f"Using device: {device}")
         
-        app.logger.info(f"Loading segmentation models for {image_type} images...")
+        application.logger.info(f"Loading segmentation models for {image_type} images...")
         models = {}
         model_prefix = "lat" if image_type == "lateral" else "ap"
         
@@ -339,7 +339,7 @@ def process_image(input_image_path, annotated_output_path, image_type="lateral")
                 model.load_state_dict(torch.load(MODEL_WEIGHTS[name], map_location=device))
                 model.eval()
                 models[name] = model
-        app.logger.info(f"All {image_type} models loaded successfully.")
+        application.logger.info(f"All {image_type} models loaded successfully.")
         
         base_name = os.path.basename(input_image_path).split('.nii')[0]
         
@@ -362,7 +362,7 @@ def process_image(input_image_path, annotated_output_path, image_type="lateral")
         original_shape_hw = original_nii.shape[:2]
 
         # --- Capitellum Pipeline ---
-        app.logger.info("Starting capitellum segmentation...")
+        application.logger.info("Starting capitellum segmentation...")
         small_cap_key = f"{model_prefix}_small_cap"
         big_cap_key = f"{model_prefix}_big_cap"
         small_cap_mask_data, affine, header = predict_mask(models[small_cap_key], paths["input_image"], device, original_shape_hw)
@@ -372,10 +372,10 @@ def process_image(input_image_path, annotated_output_path, image_type="lateral")
         big_cap_mask_data, _, _ = predict_mask(models[big_cap_key], paths["cropped_cap_input"], device, (CROP_SIZE, CROP_SIZE))
         nib.save(nib.Nifti1Image(np.expand_dims(big_cap_mask_data, axis=-1), affine, header), paths["big_cap_mask"])
         quantify_capitellum(paths["big_cap_mask"], paths["small_cap_center"], original_shape_hw, paths["cap_quants"])
-        app.logger.info("Capitellum quantification complete.")
+        application.logger.info("Capitellum quantification complete.")
 
         # --- Radial Head Pipeline ---
-        app.logger.info("Starting radial head segmentation...")
+        application.logger.info("Starting radial head segmentation...")
         rad_head_key = f"{model_prefix}_rad_head"
         big_rad_key = f"{model_prefix}_big_rad"
         rad_head_mask_data, _, _ = predict_mask(models[rad_head_key], paths["input_image"], device, original_shape_hw)
@@ -385,10 +385,10 @@ def process_image(input_image_path, annotated_output_path, image_type="lateral")
         big_rad_mask_data, _, _ = predict_mask(models[big_rad_key], paths["cropped_rad_input"], device, (CROP_SIZE, CROP_SIZE))
         nib.save(nib.Nifti1Image(np.expand_dims(big_rad_mask_data, axis=-1), affine, header), paths["big_rad_mask"])
         quantify_radius(paths["big_rad_mask"], paths["rad_head_center"], original_shape_hw, paths["rad_quants"])
-        app.logger.info("Radial head quantification complete.")
+        application.logger.info("Radial head quantification complete.")
 
         # --- Final Annotation Step ---
-        app.logger.info("Creating final annotated image...")
+        application.logger.info("Creating final annotated image...")
         create_annotated_image(
             original_image_path=paths["input_image"],
             radial_quants_csv_path=paths["rad_quants"],
@@ -397,19 +397,19 @@ def process_image(input_image_path, annotated_output_path, image_type="lateral")
         )
         
         # --- Intersection Detection Step ---
-        app.logger.info("Detecting line-circle intersection...")
+        application.logger.info("Detecting line-circle intersection...")
         intersects = detect_line_circle_intersection(paths["rad_quants"], paths["cap_quants"])
         
-        app.logger.info("✅ Pipeline finished successfully!")
+        application.logger.info("✅ Pipeline finished successfully!")
         return True, bool(intersects) # Success with intersection result (convert to Python bool)
 
     except Exception as e:
-        app.logger.error(f"An error occurred during processing: {e}", exc_info=True)
+        application.logger.error(f"An error occurred during processing: {e}", exc_info=True)
         return False, str(e) # Failure
     
     finally:
         shutil.rmtree(temp_dir)
-        app.logger.info(f"Cleaned up temporary directory: {temp_dir}")
+        application.logger.info(f"Cleaned up temporary directory: {temp_dir}")
 
 
 ###################################################################################################
@@ -438,11 +438,11 @@ def convert_png_to_nifti(png_path, nii_path):
         # Save as NIfTI
         nib.save(nii_img, nii_path)
         
-        app.logger.info(f"Successfully converted PNG to NIfTI: {nii_path}")
+        application.logger.info(f"Successfully converted PNG to NIfTI: {nii_path}")
         return True, None
         
     except Exception as e:
-        app.logger.error(f"Error converting PNG to NIfTI: {e}")
+        application.logger.error(f"Error converting PNG to NIfTI: {e}")
         return False, str(e)
 
 def create_2slice_nifti(lateral_path, ap_path, output_path):
@@ -472,8 +472,8 @@ def create_2slice_nifti(lateral_path, ap_path, output_path):
         
         # Check if images have different dimensions
         if lat_array.shape != ap_array.shape:
-            app.logger.info(f"Images have different dimensions: lateral {lat_array.shape}, AP {ap_array.shape}")
-            app.logger.info("Resizing images to match dimensions...")
+            application.logger.info(f"Images have different dimensions: lateral {lat_array.shape}, AP {ap_array.shape}")
+            application.logger.info("Resizing images to match dimensions...")
             
             # Determine target size (use the larger dimensions)
             target_height = max(lat_array.shape[0], ap_array.shape[0])
@@ -482,14 +482,14 @@ def create_2slice_nifti(lateral_path, ap_path, output_path):
             # Resize lateral image
             if lat_array.shape != (target_height, target_width):
                 lat_resized = cv2.resize(lat_array, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
-                app.logger.info(f"Resized lateral image from {lat_array.shape} to {lat_resized.shape}")
+                application.logger.info(f"Resized lateral image from {lat_array.shape} to {lat_resized.shape}")
             else:
                 lat_resized = lat_array
             
             # Resize AP image
             if ap_array.shape != (target_height, target_width):
                 ap_resized = cv2.resize(ap_array, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
-                app.logger.info(f"Resized AP image from {ap_array.shape} to {ap_resized.shape}")
+                application.logger.info(f"Resized AP image from {ap_array.shape} to {ap_resized.shape}")
             else:
                 ap_resized = ap_array
             
@@ -504,11 +504,11 @@ def create_2slice_nifti(lateral_path, ap_path, output_path):
         nii_img = nib.Nifti1Image(combined_array, affine=np.eye(4))
         nib.save(nii_img, output_path)
         
-        app.logger.info(f"Successfully created 2-slice NIfTI: {output_path}")
+        application.logger.info(f"Successfully created 2-slice NIfTI: {output_path}")
         return True, None
         
     except Exception as e:
-        app.logger.error(f"Error creating 2-slice NIfTI: {e}")
+        application.logger.error(f"Error creating 2-slice NIfTI: {e}")
         return False, str(e)
 
 # --- Ulnar Fracture Detection Models ---
@@ -561,7 +561,7 @@ def run_ulnar_fracture_analysis(image_path, output_path, device):
         seg_model.load_state_dict(torch.load(MODEL_WEIGHTS["ulnar_segmentation"], map_location=device))
         seg_model.eval()
         
-        app.logger.info("Ulnar fracture models loaded successfully.")
+        application.logger.info("Ulnar fracture models loaded successfully.")
         
         # Load and preprocess image
         nii_image = nib.load(image_path)
@@ -590,7 +590,7 @@ def run_ulnar_fracture_analysis(image_path, output_path, device):
             
             # Only run segmentation if fracture is detected
             if pred_class_idx == 1:  # Fracture detected
-                app.logger.info("Fracture detected, running segmentation...")
+                application.logger.info("Fracture detected, running segmentation...")
                 seg_logits = seg_model(input_tensor)
                 seg_probs = torch.sigmoid(seg_logits).squeeze(0).cpu()
                 
@@ -617,7 +617,7 @@ def run_ulnar_fracture_analysis(image_path, output_path, device):
                 plt.savefig(output_path, bbox_inches='tight', pad_inches=0.1, dpi=150)
                 plt.close(fig)
             else:
-                app.logger.info("No fracture detected, skipping segmentation...")
+                application.logger.info("No fracture detected, skipping segmentation...")
                 # Generate visualization without segmentation
                 fig, axs = plt.subplots(1, 2, figsize=(12, 6))
                 fig.suptitle("Ulnar Fracture Analysis - No Fracture Detected", fontsize=16)
@@ -642,7 +642,7 @@ def run_ulnar_fracture_analysis(image_path, output_path, device):
         healthy_prob = float(cls_probs[0])
         fracture_prob = float(cls_probs[1])
         
-        app.logger.info(f"Ulnar fracture analysis complete: {prediction}")
+        application.logger.info(f"Ulnar fracture analysis complete: {prediction}")
         return True, {
             'prediction': prediction,
             'healthy_prob': healthy_prob,
@@ -650,15 +650,15 @@ def run_ulnar_fracture_analysis(image_path, output_path, device):
         }
         
     except Exception as e:
-        app.logger.error(f"Error in ulnar fracture analysis: {e}")
+        application.logger.error(f"Error in ulnar fracture analysis: {e}")
         return False, str(e)
 
-@app.route('/', methods=['GET', 'POST'])
+@application.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         # Create directories if they don't exist
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
+        os.makedirs(application.config['UPLOAD_FOLDER'], exist_ok=True)
+        os.makedirs(application.config['RESULTS_FOLDER'], exist_ok=True)
         
         results = {}
         errors = []
@@ -667,13 +667,13 @@ def upload_file():
         lateral_file = request.files.get('lateral_file')
         if lateral_file and lateral_file.filename and allowed_file(lateral_file.filename):
             filename = secure_filename(lateral_file.filename)
-            input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            input_path = os.path.join(application.config['UPLOAD_FOLDER'], filename)
             lateral_file.save(input_path)
             
             # Check if it's a PNG file and convert to NIfTI if needed
             if filename.lower().endswith('.png'):
                 nii_filename = filename.replace('.png', '.nii')
-                nii_path = os.path.join(app.config['UPLOAD_FOLDER'], nii_filename)
+                nii_path = os.path.join(application.config['UPLOAD_FOLDER'], nii_filename)
                 convert_success, convert_error = convert_png_to_nifti(input_path, nii_path)
                 
                 if not convert_success:
@@ -689,7 +689,7 @@ def upload_file():
                     
                     # Process the converted NIfTI file
                     output_filename = f"lateral_{filename.replace('.png', '')}.png"
-                    output_path = os.path.join(app.config['RESULTS_FOLDER'], output_filename)
+                    output_path = os.path.join(application.config['RESULTS_FOLDER'], output_filename)
                     
                 success, result = process_image(processing_input_path, output_path, "lateral")
                 
@@ -707,7 +707,7 @@ def upload_file():
             else:
                 # Process NIfTI file directly
                 output_filename = f"lateral_{filename.replace('.nii', '')}.png"
-                output_path = os.path.join(app.config['RESULTS_FOLDER'], output_filename)
+                output_path = os.path.join(application.config['RESULTS_FOLDER'], output_filename)
                 
                 success, result = process_image(input_path, output_path, "lateral")
                 
@@ -727,13 +727,13 @@ def upload_file():
         ap_file = request.files.get('ap_file')
         if ap_file and ap_file.filename and allowed_file(ap_file.filename):
             filename = secure_filename(ap_file.filename)
-            input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            input_path = os.path.join(application.config['UPLOAD_FOLDER'], filename)
             ap_file.save(input_path)
             
             # Check if it's a PNG file and convert to NIfTI if needed
             if filename.lower().endswith('.png'):
                 nii_filename = filename.replace('.png', '.nii')
-                nii_path = os.path.join(app.config['UPLOAD_FOLDER'], nii_filename)
+                nii_path = os.path.join(application.config['UPLOAD_FOLDER'], nii_filename)
                 convert_success, convert_error = convert_png_to_nifti(input_path, nii_path)
                 
                 if not convert_success:
@@ -749,7 +749,7 @@ def upload_file():
                     
                     # Process the converted NIfTI file
                     output_filename = f"ap_{filename.replace('.png', '')}.png"
-                    output_path = os.path.join(app.config['RESULTS_FOLDER'], output_filename)
+                    output_path = os.path.join(application.config['RESULTS_FOLDER'], output_filename)
                     
                     success, result = process_image(processing_input_path, output_path, "ap")
                     
@@ -767,7 +767,7 @@ def upload_file():
             else:
                 # Process NIfTI file directly
                 output_filename = f"ap_{filename.replace('.nii', '')}.png"
-                output_path = os.path.join(app.config['RESULTS_FOLDER'], output_filename)
+                output_path = os.path.join(application.config['RESULTS_FOLDER'], output_filename)
                 
                 success, result = process_image(input_path, output_path, "ap")
                 
@@ -801,12 +801,12 @@ def upload_file():
 
     return render_template('index.html')
 
-@app.route('/ulnar', methods=['GET', 'POST'])
+@application.route('/ulnar', methods=['GET', 'POST'])
 def ulnar_upload():
     if request.method == 'POST':
         # Create directories if they don't exist
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
+        os.makedirs(application.config['UPLOAD_FOLDER'], exist_ok=True)
+        os.makedirs(application.config['RESULTS_FOLDER'], exist_ok=True)
         
         # Check for both lateral and AP files
         lateral_file = request.files.get('lateral_file')
@@ -829,15 +829,15 @@ def ulnar_upload():
             lateral_filename = secure_filename(lateral_file.filename)
             ap_filename = secure_filename(ap_file.filename)
             
-            lateral_path = os.path.join(app.config['UPLOAD_FOLDER'], lateral_filename)
-            ap_path = os.path.join(app.config['UPLOAD_FOLDER'], ap_filename)
+            lateral_path = os.path.join(application.config['UPLOAD_FOLDER'], lateral_filename)
+            ap_path = os.path.join(application.config['UPLOAD_FOLDER'], ap_filename)
             
             lateral_file.save(lateral_path)
             ap_file.save(ap_path)
             
             # Create 2-slice NIfTI
             combined_filename = f"ulnar_combined_{lateral_filename.split('.')[0]}_{ap_filename.split('.')[0]}.nii"
-            combined_path = os.path.join(app.config['UPLOAD_FOLDER'], combined_filename)
+            combined_path = os.path.join(application.config['UPLOAD_FOLDER'], combined_filename)
             
             success, error = create_2slice_nifti(lateral_path, ap_path, combined_path)
             if not success:
@@ -847,7 +847,7 @@ def ulnar_upload():
             # Run ulnar fracture analysis
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             output_filename = f"ulnar_analysis_{lateral_filename.split('.')[0]}_{ap_filename.split('.')[0]}.png"
-            output_path = os.path.join(app.config['RESULTS_FOLDER'], output_filename)
+            output_path = os.path.join(application.config['RESULTS_FOLDER'], output_filename)
             
             success, result = run_ulnar_fracture_analysis(combined_path, output_path, device)
             
@@ -871,19 +871,19 @@ def ulnar_upload():
                 return redirect(request.url)
                 
         except Exception as e:
-            app.logger.error(f"Error in ulnar upload processing: {e}")
+            application.logger.error(f"Error in ulnar upload processing: {e}")
             flash(f"An error occurred: {str(e)}")
             return redirect(request.url)
     
     return render_template('ulnar_index.html')
 
-@app.route('/ulnar/results')
+@application.route('/ulnar/results')
 def ulnar_results():
     """Displays the ulnar fracture analysis results."""
     results = session.get('ulnar_results', {})
     return render_template('ulnar_results.html', results=results)
 
-@app.route('/download_test_images')
+@application.route('/download_test_images')
 def download_test_images():
     """Downloads the test images as a zip file."""
     import zipfile
@@ -906,9 +906,9 @@ def download_test_images():
                         arcname = os.path.relpath(file_path, sample_files_path)
                         zip_file.write(file_path, arcname)
                 
-                app.logger.info(f"Created zip file with {len(zip_file.namelist())} files")
+                application.logger.info(f"Created zip file with {len(zip_file.namelist())} files")
             else:
-                app.logger.error("Sample files directory not found")
+                application.logger.error("Sample files directory not found")
                 flash("Test images not available.")
                 return redirect(url_for('upload_file'))
         
@@ -925,23 +925,24 @@ def download_test_images():
         )
         
     except Exception as e:
-        app.logger.error(f"Error creating test images zip: {e}")
+        application.logger.error(f"Error creating test images zip: {e}")
         flash("Error preparing test images.")
         return redirect(url_for('upload_file'))
 
-@app.route('/results')
+@application.route('/results')
 def show_results():
     """Displays the final annotated images to the user."""
     results = session.get('results', {})
     return render_template('results.html', results=results)
 
 # This allows serving the result images directly
-@app.route('/static/results/<filename>')
+@application.route('/static/results/<filename>')
 def send_result_file(filename):
-    return send_from_directory(app.config['RESULTS_FOLDER'], filename)
+    return send_from_directory(application.config['RESULTS_FOLDER'], filename)
 
 
 if __name__ == '__main__':
 
-    app.run(debug=True)
+    application.run(debug=True)
+
 
