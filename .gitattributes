@@ -1,5 +1,118 @@
-<<<<<<< HEAD
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python files
+*.py text eol=lf
+*.pyc binary
+*.pyo binary
+*.pyd binary
+*.so binary
+
+# Web files
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+
+# Configuration files
+*.txt text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+
+# Image files (binary)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.bmp binary
+*.tiff binary
+*.ico binary
+*.svg text eol=lf
+
+# Medical imaging files (binary)
+*.nii binary
+*.nii.gz binary
+*.dcm binary
+*.dicom binary
+
+# Archive files (binary)
+*.zip binary
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.7z binary
+*.rar binary
+
+# Model files (binary)
 *.pth filter=lfs diff=lfs merge=lfs -text
-=======
-*.pth binary
->>>>>>> 4d8063c44c53a4e5207385ef582516ecd4a720b5
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pkl filter=lfs diff=lfs merge=lfs -text
+*.pickle filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text
+*.hdf5 filter=lfs diff=lfs merge=lfs -text
+
+# Data files
+*.csv text eol=lf
+*.tsv text eol=lf
+*.xlsx binary
+*.xls binary
+
+# Documentation
+*.pdf binary
+*.doc binary
+*.docx binary
+
+# Git files
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+*.dockerignore text eol=lf
+
+# Requirements and dependencies
+requirements.txt text eol=lf
+Pipfile text eol=lf
+Pipfile.lock text eol=lf
+
+# Jupyter notebooks
+*.ipynb text eol=lf
+
+# Log files
+*.log text eol=lf
+
+# Temporary files
+*.tmp text eol=lf
+*.temp text eol=lf
+*.swp text eol=lf
+*.swo text eol=lf
+
+# OS generated files
+.DS_Store binary
+Thumbs.db binary
+ehthumbs.db binary
+
+# IDE files
+.vscode/* text eol=lf
+.idea/* text eol=lf
+*.sublime-* text eol=lf
+
+# Environment files
+.env text eol=lf
+.env.* text eol=lf
+
+# Flask specific
+instance/ binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Static files
+static/uploads/* binary
+static/results/* binary
+static/Web_Sample_Files/* binary
