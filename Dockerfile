@@ -24,4 +24,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 7. Set the Start Command
 # Use Gunicorn to run the Flask app. OnRender sets the $PORT variable.
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:$PORT", "application:application"]
+CMD gunicorn --workers 4 --bind 0.0.0.0:$PORT application:application
